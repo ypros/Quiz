@@ -77,6 +77,9 @@
                                                 <fontDescription key="fontDescription" type="system" pointSize="24"/>
                                                 <size key="titleShadowOffset" width="5" height="5"/>
                                                 <state key="normal" title="Ответить"/>
+                                                <connections>
+                                                    <action selector="saveAnswer:" destination="oD7-Hu-BLi" eventType="touchUpInside" id="25y-Jk-wDL"/>
+                                                </connections>
                                             </button>
                                         </subviews>
                                     </stackView>
@@ -104,7 +107,7 @@
                         <outlet property="progressBar" destination="LFA-nb-P8S" id="Lbf-g9-nbB"/>
                         <outlet property="questionStack" destination="7M1-dS-sQv" id="GyI-X7-eRL"/>
                         <outlet property="questionText" destination="tAI-oi-EYT" id="pDY-pB-KAI"/>
-                        <segue destination="lZB-f3-Nsa" kind="show" id="hX7-bX-eOz"/>
+                        <segue destination="lZB-f3-Nsa" kind="show" identifier="showResult" id="hX7-bX-eOz"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="coc-n7-hvc" sceneMemberID="firstResponder"/>

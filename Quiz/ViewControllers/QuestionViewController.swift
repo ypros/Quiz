@@ -14,8 +14,12 @@ class QuestionViewController: UIViewController {
     @IBOutlet weak var questionText: UILabel!
     @IBOutlet weak var buttonNext: UIButton!
     
+    var sliderValueLabel: UILabel?
+    var singleButtons: [UIButton] = []
+    
     var questionIndex: Int = 0
     var questions: [Question] = Question.all.shuffled()
+    var answers: [Answer] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,7 +37,6 @@ class QuestionViewController: UIViewController {
         
         for (n, answer) in question.answers.enumerated() {
 
-            
             let answerRow = UIStackView()
             answerRow.axis = .horizontal
             answerRow.alignment = .center
@@ -57,6 +60,8 @@ class QuestionViewController: UIViewController {
     
     private func addAnswersSingle(_ question: Question) {
         
+        singleButtons = []
+        
         for (n, answer) in question.answers.enumerated() {
             
             let answerRow = UIStackView()
@@ -70,7 +75,9 @@ class QuestionViewController: UIViewController {
             button.titleLabel?.font = UIFont.systemFont(ofSize: 20)
             button.setTitleColor(UIColor.darkText, for: [])
             button.titleShadowColor(for: [])
-            button.isSelected = (n == 1)
+            button.addTarget(self, action: #selector(answerButtonPressed), for: .touchUpInside)
+            
+            singleButtons.append(button)
             
             answerRow.addArrangedSubview(button)
             
@@ -89,14 +96,16 @@ class QuestionViewController: UIViewController {
         answerRow.distribution = .fill
         answerRow.spacing = 0
         
-        let valueTitle = UILabel()
-        valueTitle.text = currentAnswer.text
-        valueTitle.textAlignment = .center
-        valueTitle.font = UIFont.systemFont(ofSize: 28)
+        sliderValueLabel = UILabel()
+        sliderValueLabel!.text = currentAnswer.text
+        sliderValueLabel!.textAlignment = .center
+        sliderValueLabel!.font = UIFont.systemFont(ofSize: 28)
         
         let slider = UISlider()
         slider.minimumValue = 0
-        slider.maximumValue = Float(question.answers.count)
+        slider.maximumValue = Float(question.answers.count - 1)
+        slider.addTarget(self, action: #selector(answerSliderMoved), for: .valueChanged)
+        
         
         let minMaxRow = UIStackView()
         minMaxRow.axis = .horizontal
@@ -117,7 +126,7 @@ class QuestionViewController: UIViewController {
         minMaxRow.addArrangedSubview(minValueTitle)
         minMaxRow.addArrangedSubview(maxValueTitle)
         
-        answerRow.addArrangedSubview(valueTitle)
+        answerRow.addArrangedSubview(sliderValueLabel!)
         answerRow.addArrangedSubview(slider)
         answerRow.addArrangedSubview(minMaxRow)
         
@@ -130,7 +139,7 @@ class QuestionViewController: UIViewController {
         
         navigationItem.title = "Вопрос № \(questionIndex + 1)"
         
-        progressBar.setProgress(0.1, animated: false)
+        progressBar.setProgress(Float(questionIndex + 1) / Float(questions.count), animated: true)
         
         print(Float(questionIndex + 1), Float(questions.endIndex))
         print(Float(questionIndex + 1) / Float(questions.endIndex))
@@ -138,6 +147,10 @@ class QuestionViewController: UIViewController {
         let question = questions[questionIndex]
         
         questionText.text = question.text
+        
+        for element in questionStack.arrangedSubviews {
+            element.removeFromSuperview()
+        }
         
         switch question.style {
         case .multi: addAnswersMulti(question)
@@ -147,6 +160,37 @@ class QuestionViewController: UIViewController {
         
     }
     
+    @IBAction func saveAnswer(_ sender: UIButton) {
+        nextQuestion()
+    }
     
+    @IBAction func answerButtonPressed(_ sender: UIButton) {
+        for button in singleButtons {
+            button.isSelected = (button == sender)
+        }
+    }
+    
+    @IBAction func answerSwitchToggled(_ sender: UISwitch) {
+        
+    }
+    
+    @IBAction func answerSliderMoved(_ sender: UISlider) {
+        
+        sender.value =  roundf(sender.value)
+        sliderValueLabel?.text = questions[questionIndex].answers[Int(sender.value)].text
+    }
+    
+    
+    
+    private func nextQuestion() {
+        questionIndex += 1
+        
+        if questionIndex == questions.count {
+            performSegue(withIdentifier: "showResult", sender: nil)
+        }
+        else {
+            updateUI()
+        }
+    }
     
 }
