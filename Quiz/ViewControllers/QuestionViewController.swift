@@ -10,9 +10,12 @@ import UIKit
 class QuestionViewController: UIViewController {
     
     @IBOutlet weak var questionStack: UIStackView!
+    @IBOutlet weak var answersStack: UIStackView!
     @IBOutlet weak var progressBar: UIProgressView!
     @IBOutlet weak var questionText: UILabel!
     @IBOutlet weak var buttonNext: UIButton!
+    @IBOutlet weak var questionStackLeadingConstraint: NSLayoutConstraint!
+    @IBOutlet weak var questionStackTrailingConstraint: NSLayoutConstraint!
     
     var sliderValueLabel: UILabel?
     var singleButtons: [UIButton] = []
@@ -40,11 +43,9 @@ class QuestionViewController: UIViewController {
         super.viewDidLoad()
         
         // Do any additional setup after loading the view.
-        
+        self.overrideUserInterfaceStyle = .dark
         
         updateUI()
-        
-        
         
     }
     
@@ -63,6 +64,7 @@ class QuestionViewController: UIViewController {
             
             let answerLabel = UILabel()
             answerLabel.text = answer.text
+            answerLabel.font = UIFont.systemFont(ofSize: 24)
             
             let answerSwitch = UISwitch()
             answerSwitch.isOn = false
@@ -74,7 +76,7 @@ class QuestionViewController: UIViewController {
             answerRow.addArrangedSubview(answerLabel)
             answerRow.addArrangedSubview(answerSwitch)
             
-            questionStack.addArrangedSubview(answerRow)
+            answersStack.addArrangedSubview(answerRow)
         }
     }
     
@@ -92,8 +94,7 @@ class QuestionViewController: UIViewController {
             
             let button = UIButton(type: .roundedRect)
             button.setTitle(answer.text, for: [])
-            button.titleLabel?.font = UIFont.systemFont(ofSize: 20)
-            button.setTitleColor(UIColor.darkText, for: [])
+            button.titleLabel?.font = UIFont.systemFont(ofSize: 24)
             button.titleShadowColor(for: [])
             button.addTarget(self, action: #selector(answerButtonPressed), for: .touchUpInside)
             button.tag = n
@@ -102,7 +103,7 @@ class QuestionViewController: UIViewController {
             
             answerRow.addArrangedSubview(button)
             
-            questionStack.addArrangedSubview(button)
+            answersStack.addArrangedSubview(button)
         }
         
     }
@@ -118,7 +119,7 @@ class QuestionViewController: UIViewController {
         sliderValueLabel = UILabel()
         sliderValueLabel!.text = currentAnswers.first?.text
         sliderValueLabel!.textAlignment = .center
-        sliderValueLabel!.font = UIFont.systemFont(ofSize: 28)
+        sliderValueLabel!.font = UIFont.systemFont(ofSize: 24)
         
         let slider = UISlider()
         slider.minimumValue = 0
@@ -149,16 +150,15 @@ class QuestionViewController: UIViewController {
         answerRow.addArrangedSubview(slider)
         answerRow.addArrangedSubview(minMaxRow)
         
-        questionStack.addArrangedSubview(answerRow)
+        answersStack.addArrangedSubview(answerRow)
         
     }
-    
     
     private func updateUI() {
         
         selectedAnswers = []
         
-        for element in questionStack.arrangedSubviews {
+        for element in answersStack.arrangedSubviews {
             element.removeFromSuperview()
         }
         
@@ -169,11 +169,60 @@ class QuestionViewController: UIViewController {
         questionText.text = currentQuestion.text
         
         switch currentQuestion.style {
-        case .multi: addAnswersMulti()
-        case .single: addAnswersSingle()
-        case .range: addAnswersRange()
+            case .multi: addAnswersMulti()
+            case .single: addAnswersSingle()
+            case .range: addAnswersRange()
         }
         
+        if questionStack.alpha == 0 {
+            
+            showQuestion()
+        }
+        
+    }
+    
+    
+    private func showQuestion() {
+        questionStackLeadingConstraint.constant = 20 + view.bounds.width
+        questionStackTrailingConstraint.constant = 20 - view.bounds.width
+        
+        view.layoutIfNeeded()
+        
+        questionStackLeadingConstraint.constant = 20
+        questionStackTrailingConstraint.constant = 20
+        
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) { [self] in
+            view.layoutIfNeeded()
+            questionStack.alpha = 1
+        }
+    }
+    
+    
+    
+    private func hideQuestion() {
+        questionStackLeadingConstraint.constant -= view.bounds.width
+        questionStackTrailingConstraint.constant += view.bounds.width
+        
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseIn)  {[self] in
+            view.layoutIfNeeded()
+            questionStack.alpha = 0
+        } completion: { finished in
+            
+            self.updateUI()
+        }
+    }
+    
+    private func nextQuestion() {
+        
+        questionIndex += 1
+        
+        if questionIndex < questions.count {
+            
+            hideQuestion()
+        }
+        else {
+            performSegue(withIdentifier: "showResult", sender: nil)
+        }
     }
     
     @IBAction func saveAnswer(_ sender: UIButton) {
@@ -181,8 +230,6 @@ class QuestionViewController: UIViewController {
         for index in selectedAnswers {
             answers.append(currentAnswers[index])
         }
-        
-        print(answers)
         
         nextQuestion()
         
@@ -216,17 +263,7 @@ class QuestionViewController: UIViewController {
     }
     
     
-    
-    private func nextQuestion() {
-        
-        questionIndex += 1
-        
-        if questionIndex == questions.count {
-            performSegue(withIdentifier: "showResult", sender: nil)
-        }
-        else {
-            updateUI()
-        }
+    @IBSegueAction func showResult(_ coder: NSCoder, sender: Any?) -> ResultViewController? {
+        return ResultViewController(coder: coder, answers)
     }
-    
 }
