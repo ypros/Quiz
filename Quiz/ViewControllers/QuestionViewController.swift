@@ -28,6 +28,7 @@ class QuestionViewController: UIViewController {
     var selectedAnswers: Set<Int> = [] {
         didSet {
             buttonNext.isEnabled = !selectedAnswers.isEmpty
+            buttonNext.alpha = buttonNext.isEnabled ? 1 : 0.3
         }
     }
     
@@ -44,6 +45,12 @@ class QuestionViewController: UIViewController {
         
         // Do any additional setup after loading the view.
         self.overrideUserInterfaceStyle = .dark
+        
+        buttonNext.layer.cornerRadius = 25
+        buttonNext.backgroundColor = #colorLiteral(red: 0.2605174184, green: 0.2605243921, blue: 0.260520637, alpha: 1)
+        buttonNext.setTitleColor(#colorLiteral(red: 0.7540688515, green: 0.7540867925, blue: 0.7540771365, alpha: 1), for: .normal)
+        buttonNext.setTitleColor(#colorLiteral(red: 0.4756349325, green: 0.4756467342, blue: 0.4756404161, alpha: 1), for: .disabled)
+        buttonNext.layer.masksToBounds = true
         
         updateUI()
         
